@@ -22,34 +22,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.gpu;
+#version 330
 
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec2 aTexCoord;
 
-@ConfigGroup("gpu")
-public interface GpuPluginConfig extends Config
+out vec2 TexCoord;
+
+void main()
 {
-	@ConfigItem(
-		keyName = "drawDistance",
-		name = "Draw Distance",
-		description = "Draw distance",
-		position = 1
-	)
-	default int drawDistance()
-	{
-		return 25;
-	}
+	gl_Position = vec4(aPos, 1.0);
 
-	@ConfigItem(
-		keyName = "smoothBanding",
-		name = "Remove Color Banding",
-		description = "Smooths out the color banding that is present in the CPU renderer",
-		position = 2
-	)
-	default boolean smoothBanding()
-	{
-		return false;
-	}
+	// Flip the UV because it's pre-flipped in the ui texture buffer, but we don't need it to be flipped here.
+	TexCoord = vec2(aTexCoord.x, 1 - aTexCoord.y);
 }

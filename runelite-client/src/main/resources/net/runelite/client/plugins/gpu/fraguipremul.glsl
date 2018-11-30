@@ -22,34 +22,16 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.gpu;
+#version 330
 
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
+layout (location = 0) out vec4 color;
 
-@ConfigGroup("gpu")
-public interface GpuPluginConfig extends Config
+uniform sampler2D tex;
+
+in vec2 TexCoord;
+
+void main()
 {
-	@ConfigItem(
-		keyName = "drawDistance",
-		name = "Draw Distance",
-		description = "Draw distance",
-		position = 1
-	)
-	default int drawDistance()
-	{
-		return 25;
-	}
-
-	@ConfigItem(
-		keyName = "smoothBanding",
-		name = "Remove Color Banding",
-		description = "Smooths out the color banding that is present in the CPU renderer",
-		position = 2
-	)
-	default boolean smoothBanding()
-	{
-		return false;
-	}
+	vec4 c = texture(tex, TexCoord);
+	color = vec4(c.rgb * c.a, c.a);
 }

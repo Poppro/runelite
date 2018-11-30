@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, Joshua Filby <joshua@filby.me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,34 +22,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.gpu;
+package net.runelite.cache.definitions;
 
-import net.runelite.client.config.Config;
-import net.runelite.client.config.ConfigGroup;
-import net.runelite.client.config.ConfigItem;
+import java.util.Map;
+import lombok.RequiredArgsConstructor;
 
-@ConfigGroup("gpu")
-public interface GpuPluginConfig extends Config
+@RequiredArgsConstructor
+public class StructDefinition
 {
-	@ConfigItem(
-		keyName = "drawDistance",
-		name = "Draw Distance",
-		description = "Draw distance",
-		position = 1
-	)
-	default int drawDistance()
-	{
-		return 25;
-	}
-
-	@ConfigItem(
-		keyName = "smoothBanding",
-		name = "Remove Color Banding",
-		description = "Smooths out the color banding that is present in the CPU renderer",
-		position = 2
-	)
-	default boolean smoothBanding()
-	{
-		return false;
-	}
+	public Map<Integer, Object> params = null;
 }
