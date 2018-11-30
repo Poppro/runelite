@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Adam <Adam@sigterm.info>
+ * Copyright (c) 2018, Joshua Filby <joshua@filby.me>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,47 +22,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.http.api.updatecheck;
+package net.runelite.cache;
 
-import com.google.gson.JsonParseException;
+import com.google.common.io.Files;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import net.runelite.http.api.RuneLiteAPI;
-import okhttp3.HttpUrl;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import java.nio.charset.Charset;
+import java.util.Map;
+import net.runelite.cache.definitions.StructDefinition;
+import net.runelite.cache.fs.Store;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UpdateCheckClient
+public class StructManagerTest
 {
-	private static final Logger logger = LoggerFactory.getLogger(UpdateCheckClient.class);
+	private static final Logger logger = LoggerFactory.getLogger(StructManagerTest.class);
 
-	public boolean isOutdated()
+	private final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+
+	@Rule
+	public TemporaryFolder folder = StoreLocation.getTemporaryFolder();
+
+	@Test
+	public void test() throws IOException
 	{
-		HttpUrl url = RuneLiteAPI.getApiBase().newBuilder()
-			.addPathSegment("update-check")
-			.build();
+		File dumpDir = folder.newFolder();
+		int count = 0;
 
-		logger.debug("Built URI: {}", url);
-
-		Request request = new Request.Builder()
-			.url(url)
-			.build();
-
-		try (Response response = RuneLiteAPI.CLIENT.newCall(request).execute())
+		try (Store store = new Store(StoreLocation.LOCATION))
 		{
-			ResponseBody body = response.body();
+			store.load();
+			StructManager loader = new StructManager(store);
+			loader.load();
 
-			InputStream in = body.byteStream();
-			return RuneLiteAPI.GSON.fromJson(new InputStreamReader(in), boolean.class);
+			for (Map.Entry<Integer, StructDefinition> struct : loader.getStructs().entrySet())
+			{
+				StructDefinition def = struct.getValue();
+
+				Files.write(gson.toJson(def), new File(dumpDir, struct.getKey() + ".json"), Charset.defaultCharset());
+				++count;
+			}
 		}
-		catch (JsonParseException | IOException ex)
-		{
-			logger.debug("Unable to update-check", ex);
-			return false;
-		}
+
+		logger.info("Dumped {} structs to {}", count, dumpDir);
 	}
 }

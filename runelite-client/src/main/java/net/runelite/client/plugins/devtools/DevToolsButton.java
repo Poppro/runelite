@@ -1,5 +1,4 @@
 /*
- * Copyright (c) 2018, Adam <Adam@sigterm.info>
  * Copyright (c) 2018, Tomas Slusny <slusnucky@gmail.com>
  * All rights reserved.
  *
@@ -23,62 +22,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.http.service.updatecheck;
+package net.runelite.client.plugins.devtools;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import net.runelite.http.api.RuneLiteAPI;
-import okhttp3.Request;
-import okhttp3.Response;
+import java.awt.Color;
+import javax.swing.JButton;
+import lombok.Getter;
 
-class ClientConfigLoader
+class DevToolsButton extends JButton
 {
-	private static final String CONFIG_URL = "http://oldschool.runescape.com/jav_config.ws";
+	@Getter
+	private boolean active;
 
-	static RSConfig fetch() throws IOException
+	DevToolsButton(String title)
 	{
-		final Request request = new Request.Builder()
-			.url(CONFIG_URL)
-			.build();
+		super(title);
+		addActionListener((ev) -> setActive(!active));
+	}
 
-		final RSConfig config = new RSConfig();
+	void setActive(boolean active)
+	{
+		this.active = active;
 
-		try (final Response response = RuneLiteAPI.CLIENT.newCall(request).execute(); final BufferedReader in = new BufferedReader(
-			new InputStreamReader(response.body().byteStream())))
+		if (active)
 		{
-			String str;
-
-			while ((str = in.readLine()) != null)
-			{
-				int idx = str.indexOf('=');
-
-				if (idx == -1)
-				{
-					continue;
-				}
-
-				String s = str.substring(0, idx);
-
-				switch (s)
-				{
-					case "param":
-						str = str.substring(idx + 1);
-						idx = str.indexOf('=');
-						s = str.substring(0, idx);
-
-						config.getAppletProperties().put(s, str.substring(idx + 1));
-						break;
-					case "msg":
-						// ignore
-						break;
-					default:
-						config.getClassLoaderProperties().put(s, str.substring(idx + 1));
-						break;
-				}
-			}
+			setBackground(Color.GREEN);
 		}
-
-		return config;
+		else
+		{
+			setBackground(null);
+		}
 	}
 }
