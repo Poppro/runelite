@@ -149,7 +149,9 @@ public class BossLogDropPanel extends BossLogPanelView
 
 		//draw regular drops
 		logContainer.removeAll();
-		int rows = ( client.getCanvasHeight() - 208) / 42; //trim top, calculate rows (will truncate = good)
+		//int rows = ( client.getCanvasHeight() - 208) / 42; //trim top, calculate rows (will truncate = good)
+		int rows = ( bossLogPanel.getBounds().height - 208) / 42; //trim top, calculate rows (will truncate = good)
+
 		int cr = 0;
 		for (BossLogItem i : panelBoss.getDrops())
 		{
