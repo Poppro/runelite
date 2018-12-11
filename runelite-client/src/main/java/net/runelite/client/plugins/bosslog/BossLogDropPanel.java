@@ -227,8 +227,8 @@ public class BossLogDropPanel extends BossLogPanelView
 			{
 				setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
 				reset_button.setIcon(RESET_ICON);
-				panelBoss.clear();
-				bossLogPanel.plugin.save(panelBoss.getBoss());
+				//panelBoss.clear();
+				//bossLogPanel.plugin.save(panelBoss.getBoss());
 			}
 			@Override
 			public void mouseEntered(MouseEvent e)
