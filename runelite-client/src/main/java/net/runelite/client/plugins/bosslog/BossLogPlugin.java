@@ -1,6 +1,6 @@
 package net.runelite.client.plugins.bosslog;
 
-import com.google.common.eventbus.Subscribe;
+import net.runelite.client.eventbus.Subscribe;
 import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
@@ -97,13 +97,13 @@ public class BossLogPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onGameStateChanged(GameStateChanged gameStateChanged)
+	public void onGameStateChanged(final GameStateChanged event)
 	{
-		if (gameStateChanged.getGameState() == GameState.LOGGED_IN && !active)
+		if (event.getGameState() == GameState.LOGGED_IN && !active)
 		{
 			updatePlugin();
 		}
-		if (gameStateChanged.getGameState() == GameState.LOGIN_SCREEN && active)
+		if (event.getGameState() == GameState.LOGIN_SCREEN && active)
 		{
 			active = false;
 			SwingUtilities.invokeLater(() -> panel.clear());
