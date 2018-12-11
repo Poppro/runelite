@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Devin French <https://github.com/devinfrench>
+ * Copyright (c) 2018, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,32 +22,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.fightcave;
+package net.runelite.client.config;
 
-import net.runelite.api.AnimationID;
-import net.runelite.api.Prayer;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public enum JadAttack
+/**
+ * Used with ConfigItem, describes valid int range for a config item.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Documented
+public @interface Range
 {
-	MAGIC(AnimationID.TZTOK_JAD_MAGIC_ATTACK, Prayer.PROTECT_FROM_MAGIC),
-	RANGE(AnimationID.TZTOK_JAD_RANGE_ATTACK, Prayer.PROTECT_FROM_MISSILES);
+	int min() default Integer.MIN_VALUE;
 
-	private final int animation;
-	private final Prayer prayer;
-
-	JadAttack(int animation, Prayer prayer)
-	{
-		this.animation = animation;
-		this.prayer = prayer;
-	}
-
-	public int getAnimation()
-	{
-		return animation;
-	}
-
-	public Prayer getPrayer()
-	{
-		return prayer;
-	}
+	int max() default Integer.MAX_VALUE;
 }
