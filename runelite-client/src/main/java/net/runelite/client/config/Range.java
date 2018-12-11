@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Abex
+ * Copyright (c) 2018, Adam <Adam@sigterm.info>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -22,14 +22,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.api;
+package net.runelite.client.config;
 
-public final class WidgetType
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * Used with ConfigItem, describes valid int range for a config item.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Documented
+public @interface Range
 {
-	public static final int LAYER = 0;
-	public static final int RECTANGLE = 3;
-	public static final int TEXT = 4;
-	public static final int GRAPHIC = 5;
-	public static final int MODEL = 6;
-	public static final int LINE = 9;
+	int min() default Integer.MIN_VALUE;
+
+	int max() default Integer.MAX_VALUE;
 }
