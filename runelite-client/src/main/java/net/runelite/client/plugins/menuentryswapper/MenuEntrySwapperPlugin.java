@@ -265,15 +265,6 @@ public class MenuEntrySwapperPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onAnimationChanged(AnimationChanged event) {
-		if(event.getActor().getAnimation() == 838) {
-			knockedOut = true;
-		} else if(event.getActor().getAnimation() == 808) {
-			knockedOut = false;
-		}
-	}
-
-	@Subscribe
 	public void onMenuOptionClicked(MenuOptionClicked event)
 	{
 		if (event.getMenuAction() != MenuAction.RUNELITE || event.getWidgetId() != WidgetInfo.INVENTORY.getId())
@@ -541,14 +532,6 @@ public class MenuEntrySwapperPlugin extends Plugin
 		else if (config.swapBones() && option.equals("bury"))
 		{
 			swap("use", option, target, true);
-		}
-		else if (option.equals("attack") && config.swapBandits())
-		{
-			if(!knockedOut) {
-				swap("knock-out", option, target, true);
-			} else {
-				swap("pickpocket", option, target, true);
-			}
 		}
 	}
 
