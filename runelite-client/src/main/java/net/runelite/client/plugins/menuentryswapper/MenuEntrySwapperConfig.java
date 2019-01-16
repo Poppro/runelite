@@ -261,14 +261,4 @@ public interface MenuEntrySwapperConfig extends Config
 	{
 		return true;
 	}
-
-	@ConfigItem(
-			keyName = "swapBandits",
-			name = "Bandits",
-			description = "Swap bandit knock-out"
-	)
-	default boolean swapBandits()
-	{
-		return true;
-	}
 }
