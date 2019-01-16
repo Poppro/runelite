@@ -37,13 +37,7 @@ import net.runelite.api.ItemComposition;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.NPC;
-import net.runelite.api.events.ConfigChanged;
-import net.runelite.api.events.FocusChanged;
-import net.runelite.api.events.MenuEntryAdded;
-import net.runelite.api.events.MenuOpened;
-import net.runelite.api.events.MenuOptionClicked;
-import net.runelite.api.events.PostItemComposition;
-import net.runelite.api.events.WidgetMenuOptionClicked;
+import net.runelite.api.events.*;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
@@ -97,6 +91,8 @@ public class MenuEntrySwapperPlugin extends Plugin
 		MenuAction.NPC_FOURTH_OPTION,
 		MenuAction.NPC_FIFTH_OPTION,
 		MenuAction.EXAMINE_NPC);
+
+	private boolean knockedOut = false;
 
 	@Inject
 	private Client client;
@@ -266,6 +262,15 @@ public class MenuEntrySwapperPlugin extends Plugin
 		resetShiftClickEntry.setParam1(widgetId);
 		resetShiftClickEntry.setType(MenuAction.RUNELITE.getId());
 		client.setMenuEntries(ArrayUtils.addAll(entries, resetShiftClickEntry));
+	}
+
+	@Subscribe
+	public void onAnimationChanged(AnimationChanged event) {
+		if(event.getActor().getAnimation() == 838) {
+			knockedOut = true;
+		} else if(event.getActor().getAnimation() == 808) {
+			knockedOut = false;
+		}
 	}
 
 	@Subscribe
@@ -531,6 +536,14 @@ public class MenuEntrySwapperPlugin extends Plugin
 		else if (config.swapBones() && option.equals("bury"))
 		{
 			swap("use", option, target, true);
+		}
+		else if (option.equals("attack") && config.swapBandits())
+		{
+			if(!knockedOut) {
+				swap("knock-out", option, target, true);
+			} else {
+				swap("pickpocket", option, target, true);
+			}
 		}
 	}
 
