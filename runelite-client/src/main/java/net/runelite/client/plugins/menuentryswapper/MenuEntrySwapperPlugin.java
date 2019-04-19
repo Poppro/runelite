@@ -565,6 +565,14 @@ public class MenuEntrySwapperPlugin extends Plugin
 		{
 			swap("use", option, target, true);
 		}
+		else if (option.equals("walk here") && target.equals("guild trophy space"))
+		{
+			swap("build", option, target, true);
+		}
+		else if (option.equals("teleport") && target.equals("guild trophy space"))
+		{
+			swap("remove", option, target, true);
+		}
 	}
 
 	@Subscribe
