@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2018, Infinitay <https://github.com/Infinitay>
- * Copyright (c) 2018, Shaun Dreclin <https://github.com/ShaunDreclin>
+ * Copyright (c) 2018-2019, Shaun Dreclin <https://github.com/ShaunDreclin>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,7 +65,7 @@ public class DailyTasksPlugin extends Plugin
 	private static final String FLAX_MESSAGE = "You have bowstrings waiting to be converted from flax from the Flax keeper.";
 	private static final String BONEMEAL_MESSAGE = "You have bonemeal and slime waiting to be collected from Robin.";
 	private static final int BONEMEAL_PER_DIARY = 13;
-	private static final String RELOG_MESSAGE = " (Requires relog)";
+	private static final String RELOG_MESSAGE = " (May require a relog)";
 
 	@Inject
 	private Client client;
@@ -86,10 +86,15 @@ public class DailyTasksPlugin extends Plugin
 	}
 
 	@Override
-	protected void shutDown() throws Exception
+	public void startUp()
+	{
+		loggingIn = true;
+	}
+
+	@Override
+	public void shutDown()
 	{
 		lastReset = 0L;
-		loggingIn = false;
 	}
 
 	@Subscribe
@@ -108,7 +113,6 @@ public class DailyTasksPlugin extends Plugin
 		boolean dailyReset = !loggingIn && currentTime - lastReset > ONE_DAY;
 
 		if ((dailyReset || loggingIn)
-			&& client.getGameState() == GameState.LOGGED_IN
 			&& client.getVar(VarClientInt.MEMBERSHIP_STATUS) == 1)
 		{
 			// Round down to the nearest day
@@ -163,7 +167,7 @@ public class DailyTasksPlugin extends Plugin
 			}
 			else if (dailyReset)
 			{
-				sendChatMessage(HERB_BOX_MESSAGE + RELOG_MESSAGE);
+				sendChatMessage(HERB_BOX_MESSAGE);
 			}
 		}
 	}
@@ -193,7 +197,7 @@ public class DailyTasksPlugin extends Plugin
 			}
 			else if (dailyReset)
 			{
-				sendChatMessage(ESSENCE_MESSAGE + RELOG_MESSAGE);
+				sendChatMessage(ESSENCE_MESSAGE);
 			}
 		}
 	}
@@ -208,7 +212,7 @@ public class DailyTasksPlugin extends Plugin
 			}
 			else if (dailyReset)
 			{
-				sendChatMessage(RUNES_MESSAGE + RELOG_MESSAGE);
+				sendChatMessage(RUNES_MESSAGE);
 			}
 		}
 	}
@@ -223,7 +227,7 @@ public class DailyTasksPlugin extends Plugin
 			}
 			else if (dailyReset)
 			{
-				sendChatMessage(SAND_MESSAGE + RELOG_MESSAGE);
+				sendChatMessage(SAND_MESSAGE);
 			}
 		}
 	}
@@ -238,7 +242,7 @@ public class DailyTasksPlugin extends Plugin
 			}
 			else if (dailyReset)
 			{
-				sendChatMessage(FLAX_MESSAGE + RELOG_MESSAGE);
+				sendChatMessage(FLAX_MESSAGE);
 			}
 		}
 	}
@@ -263,7 +267,7 @@ public class DailyTasksPlugin extends Plugin
 			}
 			else if (dailyReset)
 			{
-				sendChatMessage(BONEMEAL_MESSAGE + RELOG_MESSAGE);
+				sendChatMessage(BONEMEAL_MESSAGE);
 			}
 		}
 	}
@@ -277,7 +281,7 @@ public class DailyTasksPlugin extends Plugin
 
 		chatMessageManager.queue(
 			QueuedMessage.builder()
-				.type(ChatMessageType.GAME)
+				.type(ChatMessageType.CONSOLE)
 				.runeLiteFormattedMessage(message)
 				.build());
 	}
