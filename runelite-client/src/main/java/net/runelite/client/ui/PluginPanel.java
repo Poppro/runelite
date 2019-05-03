@@ -32,6 +32,7 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.border.EmptyBorder;
 import lombok.AccessLevel;
 import lombok.Getter;
+import net.runelite.client.plugins.timetracking.Tab;
 
 public abstract class PluginPanel extends JPanel
 {

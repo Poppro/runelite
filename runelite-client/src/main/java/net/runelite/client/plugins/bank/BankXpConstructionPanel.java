@@ -1,4 +1,11 @@
 package net.runelite.client.plugins.bank;
 
-public class BankXpConstructionPanel {
+import javax.swing.JPanel;
+
+public class BankXpConstructionPanel extends BankXpAbstractSkillPanel
+{
+    BankXpConstructionPanel(BankPanel bossPanel)
+    {
+        super(bossPanel);
+    }
 }

@@ -28,6 +28,8 @@ package net.runelite.client.plugins.bank;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;
+import javax.swing.SwingUtilities;
+
 import net.runelite.api.Client;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.events.MenuEntryAdded;
@@ -39,7 +41,12 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.plugins.banktags.tabs.BankSearch;
+import net.runelite.client.ui.ClientToolbar;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.StackFormatter;
+
+import java.awt.image.BufferedImage;
 
 @PluginDescriptor(
 	name = "Bank",
@@ -67,7 +74,12 @@ public class BankPlugin extends Plugin
 	@Inject
 	private BankSearch bankSearch;
 
+	@Inject
+	private ClientToolbar clientToolbar;
+
 	private boolean forceRightClickFlag;
+	private BankPanel panel;
+	private NavigationButton navButton;
 
 	@Provides
 	BankConfig getConfig(ConfigManager configManager)
@@ -80,6 +92,23 @@ public class BankPlugin extends Plugin
 	{
 		clientThread.invokeLater(() -> bankSearch.reset(false));
 		forceRightClickFlag = false;
+	}
+
+	@Override
+	protected void startUp() throws Exception
+	{
+		panel = new BankPanel();
+
+		final BufferedImage icon = ImageUtil.getResourceStreamFromClass(getClass(), "/skill_icons/overall.png");
+
+		navButton = NavigationButton.builder()
+				.tooltip("Banked XP")
+				.icon(icon)
+				.priority(8)
+				.panel(panel)
+				.build();
+
+		clientToolbar.addNavigation(navButton);
 	}
 
 	@Subscribe
@@ -122,6 +151,12 @@ public class BankPlugin extends Plugin
 		{
 			return;
 		}
+
+		SwingUtilities.invokeLater(() ->
+		{
+			panel.init();
+			panel.switchTab(Tab.OVERVIEW);
+		});
 
 		String strCurrentTab = "";
 		bankCalculation.calculate();
