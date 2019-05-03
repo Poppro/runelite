@@ -53,7 +53,7 @@ public class ZoomPlugin extends Plugin implements KeyListener
 	 *
 	 * Larger values trigger an overflow in the engine's fov to scale code.
 	 */
-	private static final int INNER_ZOOM_LIMIT = 1004;
+	private static final int INNER_ZOOM_LIMIT = 10000;
 
 	private boolean controlDown;
 	

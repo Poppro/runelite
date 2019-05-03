@@ -14,11 +14,11 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.CanvasSizeChanged;
 import net.runelite.api.events.ConfigChanged;
 import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.SessionOpen;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.widgets.WidgetID;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.events.NpcLootReceived;
+import net.runelite.client.events.SessionOpen;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemStack;
 import net.runelite.client.plugins.Plugin;
@@ -148,6 +148,7 @@ public class BossLogPlugin extends Plugin
 				{
 					if (boss.getBoss() == Bosses.COX)
 					{
+						assert ic != null;
 						for (Item e : ic.getItems())
 						{
 							final ItemComposition itemComposition = itemManager.getItemComposition(e.getId());
@@ -172,6 +173,7 @@ public class BossLogPlugin extends Plugin
 				{
 					if (boss.getBoss() == Bosses.TOB)
 					{
+						assert ic != null;
 						for (Item e : ic.getItems())
 						{
 							final ItemComposition itemComposition = itemManager.getItemComposition(e.getId());
