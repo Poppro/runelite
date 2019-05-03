@@ -30,6 +30,7 @@ import net.runelite.api.coords.WorldPoint;
 
 enum QuestStartLocation
 {
+	//Free Quests
 	COOKS_ASSISTANT_RFD("Cook's Assistant", new WorldPoint(3211, 3216, 0)),
 	THE_CORSAIR_CURSE("The Corsair Curse", new WorldPoint(3029, 3273, 0)),
 	DEMON_SLAYER("Demon Slayer", new WorldPoint(3204, 3424, 0)),
@@ -40,16 +41,21 @@ enum QuestStartLocation
 	IMP_CATCHER("Imp Catcher", new WorldPoint(3108, 3160, 0)),
 	THE_KNIGHTS_SWORD("The Knight's Sword", new WorldPoint(2976, 3342, 0)),
 	MISTHALIN_MYSTERY("Misthalin Mystery", new WorldPoint(3234, 3155, 0)),
-	PIRATES_TREASURE("Pirate's Treasure", new WorldPoint(3050, 3248, 0)),
+	PIRATES_TREASURE("Pirate's Treasure", new WorldPoint(3051, 3252, 0)),
 	PRINCE_ALI_RESCUE("Prince Ali Rescue", new WorldPoint(3301, 3163, 0)),
 	THE_RESTLESS_GHOST("The Restless Ghost", new WorldPoint(3240, 3210, 0)),
 	RUNE_MYSTERIES("Rune Mysteries", new WorldPoint(3210, 3220, 0)),
 	SHEEP_SHEARER("Sheep Shearer", new WorldPoint(3190, 3272, 0)),
-	SHIELD_OF_ARRAV("Shield of Arrav", new WorldPoint(3208, 3495, 0)),
+	SHIELD_OF_ARRAV_PHOENIX_GANG("Shield of Arrav (Phoenix Gang)", new WorldPoint(3208, 3495, 0)),
+	SHIELD_OF_ARRAV_BLACK_ARM_GANG("Shield of Arrav (Black Arm Gang)", new WorldPoint(3208, 3392, 0)),
 	VAMPIRE_SLAYER("Vampire Slayer", new WorldPoint(3096, 3266, 0)),
 	WITCHS_POTION("Witch's Potion", new WorldPoint(2967, 3203, 0)),
+	X_MARKS_THE_SPOT("X Marks the Spot", new WorldPoint(3227, 3242, 0)),
+
+	//Members' Quests
 	ANIMAL_MAGNETISM("Animal Magnetism", new WorldPoint(3094, 3360, 0)),
 	ANOTHER_SLICE_OF_HAM("Another Slice of H.A.M.", new WorldPoint(2799, 5428, 0)),
+	THE_ASCENT_OF_ARCEUUS("The Ascent of Arceuus", new WorldPoint(1700, 3742, 0)),
 	BETWEEN_A_ROCK("Between a Rock...", new WorldPoint(2823, 10168, 0)),
 	BIG_CHOMPY_BIRD_HUNTING("Big Chompy Bird Hunting", new WorldPoint(2629, 2981, 0)),
 	BIOHAZARD("Biohazard", new WorldPoint(2591, 3335, 0)),
@@ -84,6 +90,7 @@ enum QuestStartLocation
 	FISHING_CONTEST_1("Fishing Contest", new WorldPoint(2875, 3483, 0)),
 	FISHING_CONTEST_2("Fishing Contest", new WorldPoint(2820, 3487, 0)),
 	FORGETTABLE_TALE("Forgettable Tale...", new WorldPoint(2826, 10215, 0)),
+	THE_FORSAKEN_TOWER("The Forsaken Tower", new WorldPoint(1484, 3747, 0)),
 	THE_FREMENNIK_ISLES("The Fremennik Isles", new WorldPoint(2645, 3711, 0)),
 	THE_FREMENNIK_TRIALS("The Fremennik Trials", new WorldPoint(2657, 3669, 0)),
 	GARDEN_OF_TRANQUILLITY("Garden of Tranquillity", new WorldPoint(3227, 3477, 0)),

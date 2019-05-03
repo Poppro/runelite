@@ -26,27 +26,29 @@
  */
 package net.runelite.client.plugins.interfacestyles;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import java.awt.image.BufferedImage;
-import java.awt.image.PixelGrabber;
-import java.io.IOException;
-import java.io.InputStream;
-import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.HealthBar;
+import net.runelite.api.HealthBarOverride;
+import net.runelite.api.NodeCache;
 import net.runelite.api.SpriteID;
 import net.runelite.api.SpritePixels;
+import net.runelite.api.events.BeforeMenuRender;
 import net.runelite.api.events.ConfigChanged;
+import net.runelite.api.events.PostHealthBar;
 import net.runelite.api.events.WidgetPositioned;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.SpriteManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.util.ImageUtil;
 
 @Slf4j
 @PluginDescriptor(
@@ -69,6 +71,8 @@ public class InterfaceStylesPlugin extends Plugin
 	@Inject
 	private SpriteManager spriteManager;
 
+	private HealthBarOverride healthBarOverride;
+
 	@Provides
 	InterfaceStylesConfig provideConfig(ConfigManager configManager)
 	{
@@ -88,6 +92,10 @@ public class InterfaceStylesPlugin extends Plugin
 		{
 			restoreWidgetDimensions();
 			removeGameframe();
+			healthBarOverride = null;
+			client.setHealthBarOverride(null);
+			NodeCache heathBarCache = client.getHealthBarCache();
+			heathBarCache.reset(); // invalidate healthbar cache so padding resets
 		});
 	}
 
@@ -106,6 +114,25 @@ public class InterfaceStylesPlugin extends Plugin
 		adjustWidgetDimensions();
 	}
 
+	@Subscribe
+	public void onPostHealthBar(PostHealthBar postHealthBar)
+	{
+		if (healthBarOverride == null || !config.hdHealthBars())
+		{
+			return;
+		}
+
+		HealthBar healthBar = postHealthBar.getHealthBar();
+		SpritePixels frontSprite = healthBar.getHealthBarFrontSprite();
+
+		// Check if this is the health bar we are replacing
+		if (frontSprite == healthBarOverride.getFrontSprite() || frontSprite == healthBarOverride.getFrontSpriteLarge())
+		{
+			// Increase padding to show some more green at very low hp percentages
+			healthBar.setPadding(1);
+		}
+	}
+
 	private void updateAllOverrides()
 	{
 		removeGameframe();
@@ -113,6 +140,17 @@ public class InterfaceStylesPlugin extends Plugin
 		overrideWidgetSprites();
 		restoreWidgetDimensions();
 		adjustWidgetDimensions();
+		overrideHealthBars();
+	}
+
+	@Subscribe
+	public void onBeforeMenuRender(BeforeMenuRender event)
+	{
+		if (config.hdMenu())
+		{
+			client.draw2010Menu();
+			event.consume();
+		}
 	}
 
 	private void overrideSprites()
@@ -123,7 +161,8 @@ public class InterfaceStylesPlugin extends Plugin
 			{
 				if (skin == config.skin())
 				{
-					SpritePixels spritePixels = getFileSpritePixels(String.valueOf(spriteOverride.getSpriteID()), null);
+					String file = config.skin().toString() + "/" + spriteOverride.getSpriteID() + ".png";
+					SpritePixels spritePixels = getFileSpritePixels(file);
 
 					if (spriteOverride.getSpriteID() == SpriteID.COMPASS_TEXTURE)
 					{
@@ -154,7 +193,8 @@ public class InterfaceStylesPlugin extends Plugin
 		{
 			if (widgetOverride.getSkin() == config.skin())
 			{
-				SpritePixels spritePixels = getFileSpritePixels(widgetOverride.getName(), "widget");
+				String file = config.skin().toString() + "/widget/" + widgetOverride.getName() + ".png";
+				SpritePixels spritePixels = getFileSpritePixels(file);
 
 				if (spritePixels != null)
 				{
@@ -178,52 +218,20 @@ public class InterfaceStylesPlugin extends Plugin
 		}
 	}
 
-	private SpritePixels getFileSpritePixels(String file, String subfolder)
+	private SpritePixels getFileSpritePixels(String file)
 	{
-		StringBuilder stringBuilder = new StringBuilder();
-		stringBuilder.append(config.skin().toString() + "/");
-
-		if (subfolder != null)
+		try
 		{
-			stringBuilder.append(subfolder + "/");
+			log.debug("Loading: {}", file);
+			BufferedImage image = ImageUtil.getResourceStreamFromClass(this.getClass(), file);
+			return ImageUtil.getImageSpritePixels(image, client);
 		}
-
-		stringBuilder.append(file + ".png");
-		String filePath = stringBuilder.toString();
-
-		try (InputStream inputStream = InterfaceStylesPlugin.class.getResourceAsStream(filePath))
-		{
-			log.debug("Loading: " + filePath);
-			BufferedImage spriteImage = ImageIO.read(inputStream);
-			return getImageSpritePixels(spriteImage);
-		}
-		catch (IOException ex)
+		catch (RuntimeException ex)
 		{
 			log.debug("Unable to load image: ", ex);
 		}
-		catch (IllegalArgumentException ex)
-		{
-			log.debug("Input stream of file path " + filePath + " could not be read: ", ex);
-		}
 
 		return null;
-	}
-
-	private SpritePixels getImageSpritePixels(BufferedImage image)
-	{
-		int[] pixels = new int[image.getWidth() * image.getHeight()];
-
-		try
-		{
-			new PixelGrabber(image, 0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth())
-				.grabPixels();
-		}
-		catch (InterruptedException ex)
-		{
-			log.debug("PixelGrabber was interrupted: ", ex);
-		}
-
-		return client.createSpritePixels(pixels, image.getWidth(), image.getHeight());
 	}
 
 	private void adjustWidgetDimensions()
@@ -262,6 +270,33 @@ public class InterfaceStylesPlugin extends Plugin
 		}
 	}
 
+	private void overrideHealthBars()
+	{
+		// Reset health bar cache to reset applied padding
+		NodeCache healthBarCache = client.getHealthBarCache();
+		healthBarCache.reset();
+
+		if (config.hdHealthBars())
+		{
+			String fileBase = Skin.AROUND_2010.toString() + "/healthbar/";
+
+			SpritePixels frontSprite = getFileSpritePixels(fileBase + "front.png");
+			SpritePixels backSprite = getFileSpritePixels(fileBase + "back.png");
+
+			SpritePixels frontSpriteLarge = getFileSpritePixels(fileBase + "front_large.png");
+			SpritePixels backSpriteLarge = getFileSpritePixels(fileBase + "back_large.png");
+
+			HealthBarOverride override = new HealthBarOverride(frontSprite, backSprite, frontSpriteLarge, backSpriteLarge);
+			healthBarOverride = override;
+			client.setHealthBarOverride(override);
+		}
+		else
+		{
+			healthBarOverride = null;
+			client.setHealthBarOverride(null);
+		}
+	}
+
 	private void restoreWidgetDimensions()
 	{
 		for (WidgetOffset widgetOffset : WidgetOffset.values())
@@ -284,7 +319,7 @@ public class InterfaceStylesPlugin extends Plugin
 
 		if (compassImage != null)
 		{
-			SpritePixels compass = getImageSpritePixels(compassImage);
+			SpritePixels compass = ImageUtil.getImageSpritePixels(compassImage, client);
 			client.setCompass(compass);
 		}
 	}

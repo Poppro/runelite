@@ -24,8 +24,8 @@
  */
 package net.runelite.client.plugins.barrows;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Provides;
 import java.util.HashSet;
 import java.util.Set;
@@ -50,12 +50,15 @@ import net.runelite.api.events.WallObjectChanged;
 import net.runelite.api.events.WallObjectDespawned;
 import net.runelite.api.events.WallObjectSpawned;
 import net.runelite.api.events.WidgetLoaded;
+import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetID;
+import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.chat.ChatColorType;
 import net.runelite.client.chat.ChatMessageBuilder;
 import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.chat.QueuedMessage;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
@@ -80,12 +83,20 @@ public class BarrowsPlugin extends Plugin
 	);
 
 	private static final Set<Integer> BARROWS_LADDERS = Sets.newHashSet(NullObjectID.NULL_20675, NullObjectID.NULL_20676, NullObjectID.NULL_20677);
+	private static final ImmutableList<WidgetInfo> POSSIBLE_SOLUTIONS = ImmutableList.of(
+		WidgetInfo.BARROWS_PUZZLE_ANSWER1,
+		WidgetInfo.BARROWS_PUZZLE_ANSWER2,
+		WidgetInfo.BARROWS_PUZZLE_ANSWER3
+	);
 
 	@Getter(AccessLevel.PACKAGE)
 	private final Set<WallObject> walls = new HashSet<>();
 
 	@Getter(AccessLevel.PACKAGE)
 	private final Set<GameObject> ladders = new HashSet<>();
+
+	@Getter
+	private Widget puzzleAnswer;
 
 	@Inject
 	private OverlayManager overlayManager;
@@ -128,6 +139,20 @@ public class BarrowsPlugin extends Plugin
 		overlayManager.remove(brotherOverlay);
 		walls.clear();
 		ladders.clear();
+		puzzleAnswer = null;
+
+		// Restore widgets
+		final Widget potential = client.getWidget(WidgetInfo.BARROWS_POTENTIAL);
+		if (potential != null)
+		{
+			potential.setHidden(false);
+		}
+
+		final Widget barrowsBrothers = client.getWidget(WidgetInfo.BARROWS_BROTHERS);
+		if (barrowsBrothers != null)
+		{
+			barrowsBrothers.setHidden(false);
+		}
 	}
 
 	@Subscribe
@@ -198,6 +223,7 @@ public class BarrowsPlugin extends Plugin
 			// on region changes the tiles get set to null
 			walls.clear();
 			ladders.clear();
+			puzzleAnswer = null;
 		}
 	}
 
@@ -224,9 +250,25 @@ public class BarrowsPlugin extends Plugin
 				.append(ChatColorType.NORMAL);
 
 			chatMessageManager.queue(QueuedMessage.builder()
-				.type(ChatMessageType.EXAMINE_ITEM)
+				.type(ChatMessageType.ITEM_EXAMINE)
 				.runeLiteFormattedMessage(message.build())
 				.build());
+		}
+		else if (event.getGroupId() == WidgetID.BARROWS_PUZZLE_GROUP_ID)
+		{
+			final int answer = client.getWidget(WidgetInfo.BARROWS_FIRST_PUZZLE).getModelId() - 3;
+			puzzleAnswer = null;
+
+			for (WidgetInfo puzzleNode : POSSIBLE_SOLUTIONS)
+			{
+				final Widget widgetToCheck = client.getWidget(puzzleNode);
+
+				if (widgetToCheck != null && widgetToCheck.getModelId() == answer)
+				{
+					puzzleAnswer = client.getWidget(puzzleNode);
+					break;
+				}
+			}
 		}
 	}
 }

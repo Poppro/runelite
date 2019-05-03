@@ -24,8 +24,6 @@
  */
 package net.runelite.client;
 
-import com.google.common.eventbus.EventBus;
-import com.google.common.eventbus.SubscriberExceptionContext;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.name.Names;
@@ -43,6 +41,7 @@ import net.runelite.client.chat.ChatMessageManager;
 import net.runelite.client.config.ChatColorConfig;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.RuneLiteConfig;
+import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.menus.MenuManager;
 import net.runelite.client.plugins.PluginManager;
@@ -51,7 +50,6 @@ import net.runelite.client.rs.ClientUpdateCheckMode;
 import net.runelite.client.task.Scheduler;
 import net.runelite.client.util.DeferredEventBus;
 import net.runelite.client.util.ExecutorServiceExceptionLogger;
-import net.runelite.client.util.QueryRunner;
 import net.runelite.http.api.RuneLiteAPI;
 import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
@@ -76,7 +74,6 @@ public class RuneLiteModule extends AbstractModule
 		bindConstant().annotatedWith(Names.named("developerMode")).to(developerMode);
 		bind(ScheduledExecutorService.class).toInstance(new ExecutorServiceExceptionLogger(Executors.newSingleThreadScheduledExecutor()));
 		bind(OkHttpClient.class).toInstance(RuneLiteAPI.CLIENT);
-		bind(QueryRunner.class);
 		bind(MenuManager.class);
 		bind(ChatMessageManager.class);
 		bind(ItemManager.class);
@@ -86,6 +83,9 @@ public class RuneLiteModule extends AbstractModule
 		bind(SessionManager.class);
 
 		bind(Callbacks.class).to(Hooks.class);
+
+		bind(EventBus.class)
+			.toInstance(new EventBus());
 
 		bind(EventBus.class)
 			.annotatedWith(Names.named("Deferred EventBus"))
@@ -122,17 +122,5 @@ public class RuneLiteModule extends AbstractModule
 	ChatColorConfig provideChatColorConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(ChatColorConfig.class);
-	}
-
-	@Provides
-	@Singleton
-	EventBus provideEventBus()
-	{
-		return new EventBus(RuneLiteModule::eventExceptionHandler);
-	}
-
-	private static void eventExceptionHandler(Throwable exception, SubscriberExceptionContext context)
-	{
-		log.warn("uncaught exception in event subscriber", exception);
 	}
 }
