@@ -1,5 +1,6 @@
 package net.runelite.client.plugins.bank;
 
+import net.runelite.api.Skill;
 import net.runelite.client.game.SkillIconManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.DynamicGridLayout;
@@ -68,13 +69,16 @@ class BankPanel extends PluginPanel
         materialTab.setToolTipText(tab.getName());
 
         materialTab.setOnSelectEvent(() ->
-        {
-           //tabContentPanel.update();
-            return true;
-        });
+                true);
 
         uiTabs.put(tab, materialTab);
         tabGroup.addTab(materialTab);
+    }
+
+    void update(Map<Skill, Double> xp) {
+        for(Tab tab : Tab.values())
+            if(tab.getSkill() != null)
+                tab.getGridItem().updateXp(xp.get(tab.getSkill()));
     }
 
     void init()

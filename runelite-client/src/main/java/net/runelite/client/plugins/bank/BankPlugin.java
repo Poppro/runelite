@@ -92,6 +92,7 @@ public class BankPlugin extends Plugin
 	{
 		clientThread.invokeLater(() -> bankSearch.reset(false));
 		forceRightClickFlag = false;
+		clientToolbar.removeNavigation(navButton);
 	}
 
 	@Override
@@ -104,7 +105,7 @@ public class BankPlugin extends Plugin
 		navButton = NavigationButton.builder()
 				.tooltip("Banked XP")
 				.icon(icon)
-				.priority(8)
+				.priority(6)
 				.panel(panel)
 				.build();
 
@@ -151,12 +152,6 @@ public class BankPlugin extends Plugin
 		{
 			return;
 		}
-
-		SwingUtilities.invokeLater(() ->
-		{
-			panel.init();
-			panel.switchTab(Tab.OVERVIEW);
-		});
 
 		String strCurrentTab = "";
 		bankCalculation.calculate();
@@ -205,5 +200,12 @@ public class BankPlugin extends Plugin
 		int stringStackSize = client.getStringStackSize();
 
 		stringStack[stringStackSize - 1] += strCurrentTab;
+
+		SwingUtilities.invokeLater(() ->
+		{
+			panel.init();
+			panel.switchTab(Tab.OVERVIEW);
+			panel.update(bankCalculation.getXp());
+		});
 	}
 }

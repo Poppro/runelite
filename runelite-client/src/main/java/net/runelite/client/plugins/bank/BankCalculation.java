@@ -41,6 +41,8 @@ import net.runelite.api.ItemContainer;
 import net.runelite.api.ItemID;
 import static net.runelite.api.ItemID.COINS_995;
 import static net.runelite.api.ItemID.PLATINUM_TOKEN;
+
+import net.runelite.api.Skill;
 import net.runelite.api.Varbits;
 import net.runelite.client.game.ItemManager;
 
@@ -72,6 +74,9 @@ class BankCalculation
 
 	@Getter
 	private long haPrice;
+
+	@Getter
+	private Map<Skill, Double> xp = new HashMap<>();
 
 	@Inject
 	BankCalculation(ItemManager itemManager, BankConfig config, Client client)
@@ -179,6 +184,35 @@ class BankCalculation
 
 				gePrice += (long) itemManager.getItemPrice(itemId) * quantity;
 			}
+		}
+
+		calculateXP(items);
+	}
+
+	/**
+	 * Calculate banked xp for select skills
+	 */
+	void calculateXP(Item[] items)
+	{
+
+		for (Item item : items)
+		{
+			int quantity = item.getQuantity();
+
+			if (item.getId() <= 0 || quantity == 0)
+			{
+				continue;
+			}
+
+			for(BankedXpEnums bxe : BankedXpEnums.values())
+				if(bxe.getXpMap().containsKey(item.getId()))
+				{
+					if(!xp.containsKey(bxe.getSkill()))
+						xp.put(bxe.getSkill(), 0.0);
+
+					xp.replace(bxe.getSkill(),
+							xp.get(bxe.getSkill()) + bxe.getXpMap().get(item.getId()) * item.getQuantity());
+				}
 		}
 	}
 

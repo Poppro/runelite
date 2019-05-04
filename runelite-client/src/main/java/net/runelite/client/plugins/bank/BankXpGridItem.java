@@ -26,6 +26,8 @@ class BankXpGridItem extends JPanel
 
     private static final Color HOVER_COLOR = ColorScheme.DARKER_GRAY_HOVER_COLOR;
 
+    private final JLabel xpLabel;
+
     BankXpGridItem(Tab tab, BankPanel bankPanel, SkillIconManager iconManager)
     {
         setLayout(new BorderLayout());
@@ -41,9 +43,13 @@ class BankXpGridItem extends JPanel
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setFont(FontManager.getRunescapeFont());
 
+        xpLabel = new JLabel("0 xp");
+        xpLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+        xpLabel.setFont(FontManager.getRunescapeSmallFont());
+
         JPanel textContainer = new JPanel();
         textContainer.setBackground(ColorScheme.DARKER_GRAY_COLOR);
-        textContainer.setLayout(new GridLayout(0, 1));
+        textContainer.setLayout(new GridLayout(2, 1));
         textContainer.setBorder(new EmptyBorder(5, 7, 5, 7));
 
         addMouseListener(new MouseListener()
@@ -84,10 +90,15 @@ class BankXpGridItem extends JPanel
         });
 
         textContainer.add(statusLabel);
+        textContainer.add(xpLabel);
 
         add(textContainer, BorderLayout.CENTER);
 
         JLabel arrowLabel = new JLabel(ARROW_RIGHT_ICON);
         add(arrowLabel, BorderLayout.EAST);
+    }
+
+    void updateXp(double xp) {
+        xpLabel.setText(xp + " xp");
     }
 }

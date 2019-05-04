@@ -17,6 +17,9 @@ class BankXpOverviewPanel extends JPanel
 
             for(Tab tab : Tab.values())
                 if(tab != Tab.OVERVIEW)
-                    add(new BankXpGridItem(tab, bankPanel, iconManager));
+                {
+                    tab.setGridItem(new BankXpGridItem(tab, bankPanel, iconManager));
+                    add(tab.getGridItem());
+                }
         }
 }
