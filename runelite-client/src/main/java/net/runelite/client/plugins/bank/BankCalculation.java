@@ -76,7 +76,7 @@ class BankCalculation
 	private long haPrice;
 
 	@Getter
-	private Map<Skill, Double> xp = new HashMap<>();
+	private Map<Skill, Double> xp;
 
 	@Inject
 	BankCalculation(ItemManager itemManager, BankConfig config, Client client)
@@ -194,7 +194,7 @@ class BankCalculation
 	 */
 	void calculateXP(Item[] items)
 	{
-
+		xp = new HashMap<>();
 		for (Item item : items)
 		{
 			int quantity = item.getQuantity();

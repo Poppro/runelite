@@ -77,7 +77,7 @@ class BankPanel extends PluginPanel
 
     void update(Map<Skill, Double> xp) {
         for(Tab tab : Tab.values())
-            if(tab.getSkill() != null)
+            if(xp.containsKey(tab.getSkill()))
                 tab.getGridItem().updateXp(xp.get(tab.getSkill()));
     }
 
