@@ -43,9 +43,9 @@ import net.runelite.api.GameState;
 import net.runelite.api.Skill;
 import net.runelite.api.WorldType;
 import net.runelite.api.coords.WorldPoint;
-import net.runelite.api.events.ConfigChanged;
-import net.runelite.api.events.ExperienceChanged;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.api.events.GameStateChanged;
+import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.client.RuneLiteProperties;
 import net.runelite.client.config.ConfigManager;
@@ -181,17 +181,18 @@ public class DiscordPlugin extends Plugin
 	}
 
 	@Subscribe
-	public void onExperienceChanged(ExperienceChanged event)
+	public void onStatChanged(StatChanged statChanged)
 	{
-		final int exp = client.getSkillExperience(event.getSkill());
-		final Integer previous = skillExp.put(event.getSkill(), exp);
+		final Skill skill = statChanged.getSkill();
+		final int exp = statChanged.getXp();
+		final Integer previous = skillExp.put(skill, exp);
 
 		if (previous == null || previous >= exp)
 		{
 			return;
 		}
 
-		final DiscordGameEventType discordGameEventType = DiscordGameEventType.fromSkill(event.getSkill());
+		final DiscordGameEventType discordGameEventType = DiscordGameEventType.fromSkill(skill);
 
 		if (discordGameEventType != null && config.showSkillingActivity())
 		{
@@ -291,7 +292,11 @@ public class DiscordPlugin extends Plugin
 					}
 
 					final InputStream inputStream = response.body().byteStream();
-					final BufferedImage image = ImageIO.read(inputStream);
+					final BufferedImage image;
+					synchronized (ImageIO.class)
+					{
+						image = ImageIO.read(inputStream);
+					}
 					memberById.setAvatar(image);
 				}
 				finally
@@ -376,7 +381,15 @@ public class DiscordPlugin extends Plugin
 			return;
 		}
 
-		final DiscordGameEventType discordGameEventType = DiscordGameEventType.fromRegion(playerRegionID);
+		DiscordGameEventType discordGameEventType = DiscordGameEventType.fromRegion(playerRegionID);
+
+		// NMZ uses the same region ID as KBD. KBD is always on plane 0 and NMZ is always above plane 0
+		// Since KBD requires going through the wilderness there is no EventType for it
+		if (DiscordGameEventType.MG_NIGHTMARE_ZONE == discordGameEventType
+			&& client.getLocalPlayer().getWorldLocation().getPlane() == 0)
+		{
+			discordGameEventType = null;
+		}
 
 		if (discordGameEventType == null)
 		{

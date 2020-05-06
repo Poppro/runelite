@@ -39,9 +39,9 @@ import net.runelite.api.Player;
 import net.runelite.api.Skill;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.events.ChatMessage;
-import net.runelite.api.events.ExperienceChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
+import net.runelite.api.events.StatChanged;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
 import net.runelite.client.Notifier;
@@ -55,15 +55,15 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 @RunWith(MockitoJUnitRunner.class)
 public class SlayerPluginTest
@@ -73,6 +73,7 @@ public class SlayerPluginTest
 	private static final String TASK_NEW_KONAR_2 = "You are to bring balance to 142 Hellhounds in Witchhaven Dungeon.";
 	private static final String TASK_NEW_KONAR_3 = "You are to bring balance to 135 Trolls south of Mount Quidamortem.";
 	private static final String TASK_NEW_FIRST = "We'll start you off hunting goblins, you'll need to kill 17 of them.";
+	private static final String TASK_NEW_FIRST_KONAR = "We'll start you off bringing balance to cows, you'll need to kill 44 of them.";
 	private static final String TASK_NEW_NPC_CONTACT = "Excellent, you're doing great. Your new task is to kill<br>211 Suqahs.";
 	private static final String TASK_NEW_FROM_PARTNER = "You have received a new Slayer assignment from breaklulz: Dust Devils (377)";
 	private static final String TASK_CHECKSLAYERGEM = "You're assigned to kill Suqahs; only 211 more to go.";
@@ -82,6 +83,7 @@ public class SlayerPluginTest
 
 	private static final String TASK_BOSS_NEW = "Excellent. You're now assigned to kill Vet'ion 3 times.<br>Your reward point tally is 914.";
 	private static final String TASK_BOSS_NEW_THE = "Excellent. You're now assigned to kill the Chaos <br>Elemental 3 times. Your reward point tally is 914.";
+	private static final String TASK_KONAR_BOSS = "You're now assigned to bring balance to the Alchemical<br>Hydra 35 times. Your reward point tally is 724.";
 
 	private static final String TASK_EXISTING = "You're still hunting suqahs; you have 222 to go. Come<br>back when you've finished your task.";
 
@@ -232,6 +234,18 @@ public class SlayerPluginTest
 	}
 
 	@Test
+	public void testFirstTaskKonar()
+	{
+		Widget npcDialog = mock(Widget.class);
+		when(npcDialog.getText()).thenReturn(TASK_NEW_FIRST_KONAR);
+		when(client.getWidget(WidgetInfo.DIALOG_NPC_TEXT)).thenReturn(npcDialog);
+		slayerPlugin.onGameTick(new GameTick());
+
+		assertEquals("cows", slayerPlugin.getTaskName());
+		assertEquals(44, slayerPlugin.getAmount());
+	}
+
+	@Test
 	public void testNewNpcContactTask()
 	{
 		Widget npcDialog = mock(Widget.class);
@@ -267,6 +281,19 @@ public class SlayerPluginTest
 		assertEquals("Chaos Elemental", slayerPlugin.getTaskName());
 		assertEquals(3, slayerPlugin.getAmount());
 		assertEquals(914, slayerPlugin.getPoints());
+	}
+
+	@Test
+	public void testKonarBossTask()
+	{
+		Widget npcDialog = mock(Widget.class);
+		when(npcDialog.getText()).thenReturn(TASK_KONAR_BOSS);
+		when(client.getWidget(WidgetInfo.DIALOG_NPC_TEXT)).thenReturn(npcDialog);
+		slayerPlugin.onGameTick(new GameTick());
+
+		assertEquals("Alchemical Hydra", slayerPlugin.getTaskName());
+		assertEquals(35, slayerPlugin.getAmount());
+		assertEquals(724, slayerPlugin.getPoints());
 	}
 
 	@Test
@@ -429,17 +456,24 @@ public class SlayerPluginTest
 		when(player.getLocalLocation()).thenReturn(new LocalPoint(0, 0));
 		when(client.getLocalPlayer()).thenReturn(player);
 
-		final ExperienceChanged experienceChanged = new ExperienceChanged();
-		experienceChanged.setSkill(Skill.SLAYER);
-
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(100);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		StatChanged statChanged = new StatChanged(
+			Skill.SLAYER,
+			100,
+			2,
+			2
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		slayerPlugin.setTaskName("Dagannoth");
 		slayerPlugin.setAmount(143);
 
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(110);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		statChanged = new StatChanged(
+			Skill.SLAYER,
+			110,
+			2,
+			2
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		assertEquals(142, slayerPlugin.getAmount());
 	}
@@ -451,19 +485,26 @@ public class SlayerPluginTest
 		when(player.getLocalLocation()).thenReturn(new LocalPoint(0, 0));
 		when(client.getLocalPlayer()).thenReturn(player);
 
-		final ExperienceChanged experienceChanged = new ExperienceChanged();
-		experienceChanged.setSkill(Skill.SLAYER);
-
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(100);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		StatChanged statChanged = new StatChanged(
+			Skill.SLAYER,
+			100,
+			2,
+			2
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		slayerPlugin.setTaskName("Monster");
 		slayerPlugin.setAmount(98);
 
 		assert Task.getTask("Monster") == null;
 
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(110);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		statChanged = new StatChanged(
+			Skill.SLAYER,
+			110,
+			2,
+			2
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		assertEquals(97, slayerPlugin.getAmount());
 	}
@@ -475,24 +516,36 @@ public class SlayerPluginTest
 		when(player.getLocalLocation()).thenReturn(new LocalPoint(0, 0));
 		when(client.getLocalPlayer()).thenReturn(player);
 
-		final ExperienceChanged experienceChanged = new ExperienceChanged();
-		experienceChanged.setSkill(Skill.SLAYER);
-
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(100);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		StatChanged statChanged = new StatChanged(
+			Skill.SLAYER,
+			100,
+			2,
+			2
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		slayerPlugin.setTaskName("TzTok-Jad");
 		slayerPlugin.setAmount(1);
 
 		// One bat kill
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(110);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		statChanged = new StatChanged(
+			Skill.SLAYER,
+			110,
+			2,
+			2
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		assertEquals(1, slayerPlugin.getAmount());
 
 		// One Jad kill
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(25_360);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		statChanged = new StatChanged(
+			Skill.SLAYER,
+			25360,
+			-1,
+			-1
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		assertEquals(0, slayerPlugin.getAmount());
 	}
@@ -504,24 +557,36 @@ public class SlayerPluginTest
 		when(player.getLocalLocation()).thenReturn(new LocalPoint(0, 0));
 		when(client.getLocalPlayer()).thenReturn(player);
 
-		final ExperienceChanged experienceChanged = new ExperienceChanged();
-		experienceChanged.setSkill(Skill.SLAYER);
-
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(100);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		StatChanged statChanged = new StatChanged(
+			Skill.SLAYER,
+			110,
+			2,
+			2
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		slayerPlugin.setTaskName("TzKal-Zuk");
 		slayerPlugin.setAmount(1);
 
 		// One bat kill
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(125);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		statChanged = new StatChanged(
+			Skill.SLAYER,
+			125,
+			2,
+			2
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		assertEquals(1, slayerPlugin.getAmount());
 
 		// One Zuk kill
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(102_015);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		statChanged = new StatChanged(
+			Skill.SLAYER,
+			102_015,
+			-1,
+			-1
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		assertEquals(0, slayerPlugin.getAmount());
 	}
@@ -691,17 +756,24 @@ public class SlayerPluginTest
 		when(player.getLocalLocation()).thenReturn(new LocalPoint(0, 0));
 		when(client.getLocalPlayer()).thenReturn(player);
 
-		final ExperienceChanged experienceChanged = new ExperienceChanged();
-		experienceChanged.setSkill(Skill.SLAYER);
-
 		slayerPlugin.setTaskName("Bears");
 		slayerPlugin.setAmount(35);
 
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(0);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		StatChanged statChanged = new StatChanged(
+			Skill.SLAYER,
+			0,
+			1,
+			1
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
-		when(client.getSkillExperience(Skill.SLAYER)).thenReturn(27);
-		slayerPlugin.onExperienceChanged(experienceChanged);
+		statChanged = new StatChanged(
+			Skill.SLAYER,
+			27,
+			1,
+			1
+		);
+		slayerPlugin.onStatChanged(statChanged);
 
 		assertEquals(34, slayerPlugin.getAmount());
 	}
@@ -710,7 +782,6 @@ public class SlayerPluginTest
 	public void infoboxNotAddedOnLogin()
 	{
 		when(slayerConfig.taskName()).thenReturn(Task.BLOODVELD.getName());
-		when(slayerConfig.showInfobox()).thenReturn(true);
 
 		GameStateChanged loggingIn = new GameStateChanged();
 		loggingIn.setGameState(GameState.LOGGING_IN);

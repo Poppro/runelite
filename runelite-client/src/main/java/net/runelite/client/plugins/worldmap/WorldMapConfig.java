@@ -218,4 +218,59 @@ public interface WorldMapConfig extends Config
 	{
 		return true;
 	}
+
+	@ConfigItem(
+		keyName = WorldMapPlugin.CONFIG_KEY_RUNECRAFTING_ALTAR_ICON,
+		name = "Show runecrafting altar locations",
+		description = "Show the icons of runecrafting altars",
+		position = 18
+	)
+	default boolean runecraftingAltarIcon()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = WorldMapPlugin.CONFIG_KEY_MINING_SITE_TOOLTIPS,
+		name = "Show mining site tooltips",
+		description = "Indicates the ore available at mining sites",
+		position = 19
+	)
+	default boolean miningSiteTooltips()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = WorldMapPlugin.CONFIG_KEY_DUNGEON_TOOLTIPS,
+		name = "Show dungeon tooltips",
+		description = "Indicates the names of dungeons",
+		position = 20
+	)
+	default boolean dungeonTooltips()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = WorldMapPlugin.CONFIG_KEY_HUNTER_AREA_TOOLTIPS,
+		name = "Show hunter area tooltips",
+		description = "Indicates the creatures inside a hunting area",
+		position = 21
+	)
+	default boolean hunterAreaTooltips()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = WorldMapPlugin.CONFIG_KEY_FISHING_SPOT_TOOLTIPS,
+		name = "Show fishing spot tooltips",
+		description = "Indicates the type of fish fishable at the fishing spot",
+		position = 22
+	)
+	default boolean fishingSpotTooltips()
+	{
+		return true;
+	}
 }

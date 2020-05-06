@@ -41,6 +41,7 @@ import net.runelite.api.Perspective;
 import net.runelite.api.Point;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
+import net.runelite.client.game.FishingSpot;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
@@ -107,15 +108,15 @@ class FishingSpotOverlay extends Overlay
 			Color color;
 			if (npc.getGraphic() == GraphicID.FLYING_FISH)
 			{
-				color = Color.RED;
+				color = config.getMinnowsOverlayColor();
 			}
 			else if (spot == FishingSpot.COMMON_TENCH && npc.getWorldLocation().distanceTo2D(client.getLocalPlayer().getWorldLocation()) <= ONE_TICK_AERIAL_FISHING)
 			{
-				color = Color.GREEN;
+				color = config.getAerialOverlayColor();
 			}
 			else
 			{
-				color = Color.CYAN;
+				color = config.getOverlayColor();
 			}
 
 			if (spot == FishingSpot.MINNOW && config.showMinnowOverlay())
@@ -156,12 +157,12 @@ class FishingSpotOverlay extends Overlay
 
 			if (config.showSpotIcons())
 			{
-				BufferedImage fishImage = itemManager.getImage(spot.getFishSpriteId());;
+				BufferedImage fishImage = itemManager.getImage(spot.getFishSpriteId());
 
 				if (spot == FishingSpot.COMMON_TENCH
 					&& npc.getWorldLocation().distanceTo2D(client.getLocalPlayer().getWorldLocation()) <= ONE_TICK_AERIAL_FISHING)
 				{
-					fishImage = ImageUtil.outlineImage(itemManager.getImage(spot.getFishSpriteId()), Color.GREEN);
+					fishImage = ImageUtil.outlineImage(itemManager.getImage(spot.getFishSpriteId()), color);
 				}
 
 				if (fishImage != null)

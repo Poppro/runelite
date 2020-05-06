@@ -115,15 +115,15 @@ public class OpponentInfoPlugin extends Plugin
 		final EnumSet<WorldType> worldType = client.getWorldType();
 		if (worldType.contains(WorldType.DEADMAN_TOURNAMENT))
 		{
-			hiscoreEndpoint = HiscoreEndpoint.DEADMAN_TOURNAMENT;
-		}
-		else if (worldType.contains(WorldType.SEASONAL_DEADMAN))
-		{
-			hiscoreEndpoint = HiscoreEndpoint.SEASONAL_DEADMAN;
+			hiscoreEndpoint = HiscoreEndpoint.TOURNAMENT;
 		}
 		else if (worldType.contains(WorldType.DEADMAN))
 		{
 			hiscoreEndpoint = HiscoreEndpoint.DEADMAN;
+		}
+		else if (worldType.contains(WorldType.LEAGUE))
+		{
+			hiscoreEndpoint = HiscoreEndpoint.LEAGUE;
 		}
 		else
 		{
