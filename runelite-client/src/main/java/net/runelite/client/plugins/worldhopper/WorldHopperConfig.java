@@ -83,7 +83,7 @@ public interface WorldHopperConfig extends Config
 
 	@ConfigItem(
 		keyName = "showSidebar",
-		name = "Show world hopper sidebar",
+		name = "Show world switcher sidebar",
 		description = "Show sidebar containing all worlds that mimics in-game interface",
 		position = 4
 	)
@@ -117,7 +117,7 @@ public interface WorldHopperConfig extends Config
 	@ConfigItem(
 		keyName = "menuOption",
 		name = "Show Hop-to menu option",
-		description = "Adds Hop-to menu option to the friends list and clan members list",
+		description = "Adds Hop-to menu option to the friends list and friends chat members list",
 		position = 7
 	)
 	default boolean menuOption()

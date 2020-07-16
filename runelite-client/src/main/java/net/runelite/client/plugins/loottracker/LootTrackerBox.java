@@ -143,7 +143,7 @@ class LootTrackerBox extends JPanel
 		popupMenu.setBorder(new EmptyBorder(5, 5, 5, 5));
 		this.setComponentPopupMenu(popupMenu);
 
-		final JMenuItem toggle = new JMenuItem(eventIgnored ? "Include group" : "Ignore group");
+		final JMenuItem toggle = new JMenuItem(eventIgnored ? "Include loot" : "Hide loot");
 		toggle.addActionListener(e -> onEventToggle.accept(id, !eventIgnored));
 		popupMenu.add(toggle);
 	}
@@ -201,18 +201,22 @@ class LootTrackerBox extends JPanel
 		outer:
 		for (LootTrackerItem item : record.getItems())
 		{
+			final int mappedItemId = LootTrackerMapping.map(item.getId(), item.getName());
 			// Combine it into an existing item if one already exists
 			for (int idx = 0; idx < items.size(); ++idx)
 			{
 				LootTrackerItem i = items.get(idx);
-				if (item.getId() == i.getId())
+				if (mappedItemId == i.getId())
 				{
 					items.set(idx, new LootTrackerItem(i.getId(), i.getName(), i.getQuantity() + item.getQuantity(), i.getGePrice(), i.getHaPrice(), i.isIgnored()));
 					continue outer;
 				}
 			}
 
-			items.add(item);
+			final LootTrackerItem mappedItem = mappedItemId == item.getId()
+				? item // reuse existing item
+				: new LootTrackerItem(mappedItemId, item.getName(), item.getQuantity(), item.getGePrice(), item.getHaPrice(), item.isIgnored());
+			items.add(mappedItem);
 		}
 	}
 

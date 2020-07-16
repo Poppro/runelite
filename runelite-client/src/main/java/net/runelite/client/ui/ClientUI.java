@@ -35,12 +35,12 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.LayoutManager;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -67,9 +67,6 @@ import net.runelite.api.Constants;
 import net.runelite.api.GameState;
 import net.runelite.api.Player;
 import net.runelite.api.Point;
-import net.runelite.client.eventbus.EventBus;
-import net.runelite.client.events.ClientShutdown;
-import net.runelite.client.events.ConfigChanged;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.widgets.Widget;
 import net.runelite.api.widgets.WidgetInfo;
@@ -77,10 +74,12 @@ import net.runelite.client.RuneLiteProperties;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.config.ExpandResizeType;
-import net.runelite.client.config.Keybind;
 import net.runelite.client.config.RuneLiteConfig;
 import net.runelite.client.config.WarningOnExit;
+import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
+import net.runelite.client.events.ClientShutdown;
+import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.NavigationButtonAdded;
 import net.runelite.client.events.NavigationButtonRemoved;
 import net.runelite.client.input.KeyManager;
@@ -93,6 +92,7 @@ import net.runelite.client.util.ImageUtil;
 import net.runelite.client.util.OSType;
 import net.runelite.client.util.OSXUtil;
 import net.runelite.client.util.SwingUtil;
+import net.runelite.client.util.WinUtil;
 import org.pushingpixels.substance.internal.SubstanceSynapse;
 import org.pushingpixels.substance.internal.utils.SubstanceCoreUtilities;
 import org.pushingpixels.substance.internal.utils.SubstanceTitlePaneUtilities;
@@ -107,6 +107,7 @@ public class ClientUI
 	private static final String CONFIG_GROUP = "runelite";
 	private static final String CONFIG_CLIENT_BOUNDS = "clientBounds";
 	private static final String CONFIG_CLIENT_MAXIMIZED = "clientMaximized";
+	private static final String CONFIG_CLIENT_SIDEBAR_CLOSED = "clientSidebarClosed";
 	private static final int CLIENT_WELL_HIDDEN_MARGIN = 160;
 	private static final int CLIENT_WELL_HIDDEN_MARGIN_TOP = 10;
 	public static final BufferedImage ICON = ImageUtil.getResourceStreamFromClass(ClientUI.class, "/runelite.png");
@@ -163,7 +164,7 @@ public class ClientUI
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
-		if (!event.getGroup().equals("runelite") ||
+		if (!event.getGroup().equals(CONFIG_GROUP) ||
 			event.getKey().equals(CONFIG_CLIENT_MAXIMIZED) ||
 			event.getKey().equals(CONFIG_CLIENT_BOUNDS))
 		{
@@ -205,7 +206,6 @@ public class ClientUI
 					currentButton.setSelected(false);
 					currentNavButton.setSelected(false);
 					currentButton = null;
-					currentNavButton = null;
 				}
 				else
 				{
@@ -374,8 +374,7 @@ public class ClientUI
 			frame.add(container);
 
 			// Add key listener
-			final HotkeyListener sidebarListener = new HotkeyListener(() ->
-				new Keybind(KeyEvent.VK_F11, InputEvent.CTRL_DOWN_MASK))
+			final HotkeyListener sidebarListener = new HotkeyListener(config::sidebarToggleKey)
 			{
 				@Override
 				public void hotkeyPressed()
@@ -383,9 +382,19 @@ public class ClientUI
 					toggleSidebar();
 				}
 			};
-
-			sidebarListener.setEnabledOnLogin(true);
+			sidebarListener.setEnabledOnLoginScreen(true);
 			keyManager.registerKeyListener(sidebarListener);
+
+			final HotkeyListener pluginPanelListener = new HotkeyListener(config::panelToggleKey)
+			{
+				@Override
+				public void hotkeyPressed()
+				{
+					togglePluginPanel();
+				}
+			};
+			pluginPanelListener.setEnabledOnLoginScreen(true);
+			keyManager.registerKeyListener(pluginPanelListener);
 
 			// Add mouse listener
 			final MouseListener mouseListener = new MouseAdapter()
@@ -402,7 +411,6 @@ public class ClientUI
 					return mouseEvent;
 				}
 			};
-
 			mouseManager.registerMouseListener(mouseListener);
 
 			// Decorate window with custom chrome and titlebar if needed
@@ -467,7 +475,8 @@ public class ClientUI
 			sidebarNavigationButton = NavigationButton
 				.builder()
 				.priority(100)
-				.icon(sidebarClosedIcon)
+				.icon(sidebarOpenIcon)
+				.tooltip("Open SideBar")
 				.onClick(this::toggleSidebar)
 				.build();
 
@@ -477,7 +486,12 @@ public class ClientUI
 				null);
 
 			titleToolbar.addComponent(sidebarNavigationButton, sidebarNavigationJButton);
-			toggleSidebar();
+
+			// Open sidebar if the config closed state is unset
+			if (configManager.getConfiguration(CONFIG_GROUP, CONFIG_CLIENT_SIDEBAR_CLOSED) == null)
+			{
+				toggleSidebar();
+			}
 		});
 	}
 
@@ -502,7 +516,32 @@ public class ClientUI
 					if (clientBounds != null)
 					{
 						frame.setBounds(clientBounds);
-						frame.revalidateMinimumSize();
+
+						// frame.getGraphicsConfiguration().getBounds() returns the bounds for the primary display.
+						// We have to find the correct graphics configuration by using the intersection of the client boundaries.
+						GraphicsConfiguration gc = getIntersectingDisplay(clientBounds);
+						if (gc != null)
+						{
+							double scale = gc.getDefaultTransform().getScaleX();
+
+							// When Windows screen scaling is on, the position/bounds will be wrong when they are set.
+							// The bounds saved in shutdown are the full, non-scaled co-ordinates.
+							if (scale != 1)
+							{
+								clientBounds.setRect(
+									clientBounds.getX() / scale,
+									clientBounds.getY() / scale,
+									clientBounds.getWidth() / scale,
+									clientBounds.getHeight() / scale);
+
+								frame.setMinimumSize(clientBounds.getSize());
+								frame.setBounds(clientBounds);
+							}
+						}
+						else
+						{
+							frame.setLocationRelativeTo(frame.getOwner());
+						}
 					}
 					else
 					{
@@ -525,25 +564,13 @@ public class ClientUI
 				frame.setLocationRelativeTo(frame.getOwner());
 			}
 
-			// If the frame is well hidden (e.g. unplugged 2nd screen),
-			// we want to move it back to default position as it can be
-			// hard for the user to reposition it themselves otherwise.
-			Rectangle clientBounds = frame.getBounds();
-			Rectangle screenBounds = frame.getGraphicsConfiguration().getBounds();
-			if (clientBounds.x + clientBounds.width - CLIENT_WELL_HIDDEN_MARGIN < screenBounds.getX() ||
-				clientBounds.x + CLIENT_WELL_HIDDEN_MARGIN > screenBounds.getX() + screenBounds.getWidth() ||
-				clientBounds.y + CLIENT_WELL_HIDDEN_MARGIN_TOP < screenBounds.getY() ||
-				clientBounds.y + CLIENT_WELL_HIDDEN_MARGIN > screenBounds.getY() + screenBounds.getHeight())
-			{
-				frame.setLocationRelativeTo(frame.getOwner());
-			}
-
 			// Show frame
 			frame.setVisible(true);
 			frame.toFront();
 			requestFocus();
 			giveClientFocus();
 			log.info("Showing frame {}", frame);
+			frame.revalidateMinimumSize();
 		});
 
 		// Show out of date dialog if needed
@@ -554,6 +581,24 @@ public class ClientUI
 					+ "game update, it will work with reduced functionality until then.",
 				"RuneLite is outdated", INFORMATION_MESSAGE));
 		}
+	}
+
+	private GraphicsConfiguration getIntersectingDisplay(final Rectangle bounds)
+	{
+		GraphicsDevice[] gds = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
+
+		for (GraphicsDevice gd : gds)
+		{
+			GraphicsConfiguration gc = gd.getDefaultConfiguration();
+
+			final Rectangle displayBounds = gc.getBounds();
+			if (displayBounds.intersects(bounds))
+			{
+				return gc;
+			}
+		}
+
+		return null;
 	}
 
 	private boolean showWarningOnExit()
@@ -656,12 +701,38 @@ public class ClientUI
 	 */
 	public void requestFocus()
 	{
-		if (OSType.getOSType() == OSType.MacOS)
+		switch (OSType.getOSType())
 		{
-			OSXUtil.requestFocus();
+			case MacOS:
+				// On OSX Component::requestFocus has no visible effect, so we use our OSX-specific
+				// requestUserAttention()
+				OSXUtil.requestUserAttention();
+				break;
+			default:
+				frame.requestFocus();
 		}
 
-		frame.requestFocus();
+		giveClientFocus();
+	}
+
+	/**
+	 * Attempt to forcibly bring the client frame to front
+	 */
+	public void forceFocus()
+	{
+		switch (OSType.getOSType())
+		{
+			case MacOS:
+				OSXUtil.requestForeground();
+				break;
+			case Windows:
+				WinUtil.requestForeground(frame);
+				break;
+			default:
+				frame.requestFocus();
+				break;
+		}
+
 		giveClientFocus();
 	}
 
@@ -808,6 +879,7 @@ public class ClientUI
 		{
 			sidebarNavigationJButton.setIcon(new ImageIcon(sidebarOpenIcon));
 			sidebarNavigationJButton.setToolTipText("Open SideBar");
+			configManager.setConfiguration(CONFIG_GROUP, CONFIG_CLIENT_SIDEBAR_CLOSED, true);
 
 			contract();
 
@@ -818,6 +890,7 @@ public class ClientUI
 		{
 			sidebarNavigationJButton.setIcon(new ImageIcon(sidebarClosedIcon));
 			sidebarNavigationJButton.setToolTipText("Close SideBar");
+			configManager.unsetConfiguration(CONFIG_GROUP, CONFIG_CLIENT_SIDEBAR_CLOSED);
 
 			// Try to restore last panel
 			expand(currentNavButton);
@@ -837,6 +910,26 @@ public class ClientUI
 		else
 		{
 			frame.contractBy(pluginToolbar.getWidth());
+		}
+	}
+
+	private void togglePluginPanel()
+	{
+		// Toggle plugin panel open
+		final boolean pluginPanelOpen = pluginPanel != null;
+
+		if (currentButton != null)
+		{
+			currentButton.setSelected(!pluginPanelOpen);
+		}
+
+		if (pluginPanelOpen)
+		{
+			contract();
+		}
+		else
+		{
+			expand(currentNavButton);
 		}
 	}
 
@@ -925,6 +1018,14 @@ public class ClientUI
 			return;
 		}
 
+		// Update window opacity if the frame is undecorated, translucency capable and not fullscreen
+		if (frame.isUndecorated() &&
+			frame.getGraphicsConfiguration().isTranslucencyCapable() &&
+			frame.getGraphicsConfiguration().getDevice().getFullScreenWindow() == null)
+		{
+			frame.setOpacity(((float) config.windowOpacity()) / 100.0f);
+		}
+
 		if (config.usernameInTitle() && (client instanceof Client))
 		{
 			final Player player = ((Client)client).getLocalPlayer();
@@ -994,23 +1095,16 @@ public class ClientUI
 
 	private void saveClientBoundsConfig()
 	{
+		final Rectangle bounds = frame.getBounds();
 		if ((frame.getExtendedState() & JFrame.MAXIMIZED_BOTH) != 0)
 		{
+			configManager.setConfiguration(CONFIG_GROUP, CONFIG_CLIENT_BOUNDS, bounds);
 			configManager.setConfiguration(CONFIG_GROUP, CONFIG_CLIENT_MAXIMIZED, true);
 		}
 		else
 		{
-			final Rectangle bounds = frame.getBounds();
-
-			// Try to expand sidebar
-			if (!sidebarOpen)
-			{
-				bounds.width += pluginToolbar.getWidth();
-			}
-
 			if (config.automaticResizeType() == ExpandResizeType.KEEP_GAME_SIZE)
 			{
-
 				// Try to contract plugin panel
 				if (pluginPanel != null)
 				{

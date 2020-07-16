@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.MessageNode;
 import net.runelite.api.events.ChatMessage;
@@ -144,6 +145,22 @@ public class ChatNotificationsPlugin extends Plugin
 					notifier.notify(chatMessage.getMessage());
 				}
 				break;
+			case BROADCAST:
+				if (config.notifyOnBroadcast())
+				{
+					// Some broadcasts have links attached, notated by `|` followed by a number, while others contain color tags.
+					// We don't want to see either in the printed notification.
+					String broadcast = chatMessage.getMessage();
+
+					int urlTokenIndex = broadcast.lastIndexOf('|');
+					if (urlTokenIndex != -1)
+					{
+						broadcast = broadcast.substring(0, urlTokenIndex);
+					}
+
+					notifier.notify(Text.removeFormattingTags(broadcast));
+				}
+				break;
 			case CONSOLE:
 				// Don't notify for notification messages
 				if (chatMessage.getName().equals(RuneLiteProperties.getTitle()))
@@ -170,8 +187,11 @@ public class ChatNotificationsPlugin extends Plugin
 			{
 				messageNode.setValue(matcher.replaceAll(usernameReplacer));
 				update = true;
-
-				if (config.notifyOnOwnName())
+				if (config.notifyOnOwnName() && (chatMessage.getType() == ChatMessageType.PUBLICCHAT
+					|| chatMessage.getType() == ChatMessageType.PRIVATECHAT
+					|| chatMessage.getType() == ChatMessageType.FRIENDSCHAT
+					|| chatMessage.getType() == ChatMessageType.MODCHAT
+					|| chatMessage.getType() == ChatMessageType.MODPRIVATECHAT))
 				{
 					sendNotification(chatMessage);
 				}

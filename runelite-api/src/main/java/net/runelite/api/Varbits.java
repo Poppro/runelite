@@ -304,6 +304,9 @@ public enum Varbits
 	PERSONAL_POINTS(5422),
 	RAID_PARTY_SIZE(5424),
 
+	// 0 = raid not started, >0 = raid started
+	RAID_STATE(5425),
+
 	/**
 	 * Making Friends with My Arm fire pits
 	 *
@@ -353,7 +356,9 @@ public enum Varbits
 	/**
 	 * Pyramid plunder
 	 */
+	PYRAMID_PLUNDER_ROOM_LOCATION(2365),
 	PYRAMID_PLUNDER_TIMER(2375),
+	PYRAMID_PLUNDER_THIEVING_LEVEL(2376),
 	PYRAMID_PLUNDER_ROOM(2377),
 
 	/**

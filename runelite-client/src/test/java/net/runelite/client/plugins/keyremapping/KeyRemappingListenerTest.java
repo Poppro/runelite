@@ -30,7 +30,6 @@ import com.google.inject.testing.fieldbinder.BoundFieldModule;
 import java.awt.event.KeyEvent;
 import javax.inject.Inject;
 import net.runelite.api.Client;
-import net.runelite.api.GameState;
 import net.runelite.client.config.ModifierlessKeybind;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,8 +63,6 @@ public class KeyRemappingListenerTest
 	public void setUp()
 	{
 		Guice.createInjector(BoundFieldModule.of(this)).injectMembers(this);
-
-		when(client.getGameState()).thenReturn(GameState.LOGGED_IN);
 	}
 
 	@Test
@@ -99,9 +96,9 @@ public class KeyRemappingListenerTest
 
 		verify(event).consume();
 
+		lenient().when(keyRemappingPlugin.isTyping()).thenReturn(true); // release handler no longer checks this
 		// with the plugin now in typing mode, previously pressed and remapped keys should still be mapped
 		// on key release regardless
-		when(keyRemappingPlugin.isTyping()).thenReturn(true);
 		event = mock(KeyEvent.class);
 		when(event.getKeyCode()).thenReturn(KeyEvent.VK_D);
 		keyRemappingListener.keyReleased(event);

@@ -26,6 +26,7 @@
 package net.runelite.client.plugins.loottracker;
 
 import static com.google.common.collect.Iterables.concat;
+import com.google.common.collect.Lists;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -33,11 +34,12 @@ import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
@@ -456,12 +458,16 @@ class LootTrackerPanel extends PluginPanel
 		}
 		else
 		{
-			sessionRecords.stream()
-				.sorted(Collections.reverseOrder())
+			// Loop in reverse insertion order so limiting includes most recent data
+			Lists.reverse(sessionRecords).stream()
 				// filter records prior to limiting so that it is limited to the correct amount
 				.filter(r -> !hideIgnoredItems || !plugin.isEventIgnored(r.getTitle()))
 				.limit(MAX_LOOT_BOXES)
-				.forEach(this::buildBox);
+				// The box that is built last is first inside the UI.
+				// since we are looping in reverse order we need to use a data type that support reverse iterating
+				.collect(Collectors.toCollection(ArrayDeque::new))
+				.descendingIterator()
+				.forEachRemaining(this::buildBox);
 		}
 
 		boxes.forEach(LootTrackerBox::rebuild);
@@ -496,6 +502,8 @@ class LootTrackerPanel extends PluginPanel
 			{
 				if (box.matches(record))
 				{
+					// float the matched box to the top of the UI list if it's not already first
+					logsContainer.setComponentZOrder(box, 0);
 					box.addKill(record);
 					return box;
 				}
@@ -599,7 +607,13 @@ class LootTrackerPanel extends PluginPanel
 		long overallGe = 0;
 		long overallHa = 0;
 
-		for (LootTrackerRecord record : concat(aggregateRecords, sessionRecords))
+		Iterable<LootTrackerRecord> records = sessionRecords;
+		if (groupLoot)
+		{
+			records = concat(aggregateRecords, sessionRecords);
+		}
+
+		for (LootTrackerRecord record : records)
 		{
 			if (!record.matches(currentView, currentType))
 			{
