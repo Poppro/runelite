@@ -1592,7 +1592,7 @@ public class ChatCommandsPlugin extends Plugin
 				return "TzKal-Zuk";
 
 			case "hydra":
-				return "Alchemical Hydra";
+				return "Alchemical AlchemicalHydra";
 
 			// gwd
 			case "sara":

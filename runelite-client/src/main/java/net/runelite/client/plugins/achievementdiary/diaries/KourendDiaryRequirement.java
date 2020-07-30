@@ -122,7 +122,7 @@ public class KourendDiaryRequirement extends GenericDiaryRequirement
 			new SkillRequirement(Skill.FISHING, 82),
 			new SkillRequirement(Skill.COOKING, 84),
 			new FavourRequirement(Favour.PISCARILIUS, 100));
-		add("Kill a Hydra in the Karuulm Slayer Dungeon.",
+		add("Kill a AlchemicalHydra in the Karuulm Slayer Dungeon.",
 			new SkillRequirement(Skill.SLAYER, 95));
 		add("Create an Ape Atoll teleport tablet.",
 			new SkillRequirement(Skill.MAGIC, 90),

@@ -89,7 +89,7 @@ public class SlayerPluginTest
 
 	private static final String TASK_BOSS_NEW = "Excellent. You're now assigned to kill Vet'ion 3 times.<br>Your reward point tally is 914.";
 	private static final String TASK_BOSS_NEW_THE = "Excellent. You're now assigned to kill the Chaos <br>Elemental 3 times. Your reward point tally is 914.";
-	private static final String TASK_KONAR_BOSS = "You're now assigned to bring balance to the Alchemical<br>Hydra 35 times. Your reward point tally is 724.";
+	private static final String TASK_KONAR_BOSS = "You're now assigned to bring balance to the Alchemical<br>AlchemicalHydra 35 times. Your reward point tally is 724.";
 
 	private static final String TASK_EXISTING = "You're still hunting suqahs; you have 222 to go. Come<br>back when you've finished your task.";
 	private static final String TASK_EXISTING_KONAR = "You're still bringing balance to adamant dragons in the Lithkren Vault, with 3 to go. Come back when you're finished.";
@@ -303,7 +303,7 @@ public class SlayerPluginTest
 		when(client.getWidget(WidgetInfo.DIALOG_NPC_TEXT)).thenReturn(npcDialog);
 		slayerPlugin.onGameTick(new GameTick());
 
-		assertEquals("Alchemical Hydra", slayerPlugin.getTaskName());
+		assertEquals("Alchemical AlchemicalHydra", slayerPlugin.getTaskName());
 		assertEquals(35, slayerPlugin.getAmount());
 		verify(slayerConfig).points(724);
 	}

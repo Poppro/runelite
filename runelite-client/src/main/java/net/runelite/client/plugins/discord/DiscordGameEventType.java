@@ -77,7 +77,7 @@ enum DiscordGameEventType
 	BOSS_GENERAL_GRAARDOR("General Graardor", DiscordAreaType.BOSSES, 11347),
 	BOSS_GIANT_MOLE("Giant Mole", DiscordAreaType.BOSSES, 6993, 6992),
 	BOSS_GROTESQUE_GUARDIANS("Grotesque Guardians", DiscordAreaType.BOSSES, 6727),
-	BOSS_HYDRA("Alchemical Hydra", DiscordAreaType.BOSSES, 5536),
+	BOSS_HYDRA("Alchemical AlchemicalHydra", DiscordAreaType.BOSSES, 5536),
 	BOSS_KQ("Kalphite Queen", DiscordAreaType.BOSSES, 13972),
 	BOSS_KRAKEN("Kraken", DiscordAreaType.BOSSES, 9116),
 	BOSS_KREEARRA("Kree'arra", DiscordAreaType.BOSSES, 11346),
